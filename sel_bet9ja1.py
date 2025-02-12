@@ -25,43 +25,60 @@ options.add_argument("--no-sandbox")
 driver = webdriver.Chrome() # service=service, options=options)
 
 # Open Bet9ja Sports page
-url = "https://sports.bet9ja.com/"
+url = "https://web.bet9ja.com/Sport/Default.aspx"
 driver.get(url)
 
+try:
+    # Wait for the element to be clickable
+    element = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CSS_SELECTOR, "#panelOdds_NE > div.ng-scope.sp1 > div:nth-child(10) > div.pnlOddToday.ng-scope > span"))
+    )
+
+    # Click the element
+    element.click()
+    print("✅ Element clicked successfully!")
+
+except Exception as e:
+    print(f"❌ Error: {e}")
+
 # Allow time for content to load
-time.sleep(60)  # Adjust if necessary
+time.sleep(5)  # Adjust if necessary
 
 # Find all sports tables
-sports_tables = driver.find_elements(By.CLASS_NAME, "sports-table")
+events = driver.find_elements(By.XPATH, "//div[@ng-repeat='subEvent in sport.SottoEventiList']")
 
 # List to store scraped data
-match_data = []
+bet_table = []
 
-# Loop through each sports table
-# for table in sports_tables:
-table_f_rows = driver.find_elements(By.CLASS_NAME, "table-f")  # Get all 
-# Loop through each match entry
-for match in table_f_rows:
+
+# Loop through each events
+for event in events:
+    tab_1 = []
 # match = table_f_rows[-1]
     try:
         # Extract time
-        time_element = WebDriverWait(match, 10).until(
-                EC.presence_of_element_located((By.XPATH, ".//div[contains(@class, 'sports-table__time')]//span")))
-        # time_element = match.find_element(By.CLASS_NAME, "sports-table__time")
-        match_time = time_element.text.strip()
-    
-        # Extract teams
-        home_team = match.find_element(By.CLASS_NAME, "sports-table__home").text.strip()
-        away_team = match.find_element(By.CLASS_NAME, "sports-table__away").text.strip()
-    
-        # Extract odds
-        odds_elements = match.find_elements(By.CLASS_NAME, "sports-table__odds-item")
-        odds = [odds.text.strip() for odds in odds_elements[:15]]  # Collect odds list
-    
-        # Append match details to list
-        m_data = [match_time, home_team, away_team]
-        m_data.extend(odds)
-        match_data.append(m_data)
+        time = event.find_element(By.XPATH, ".//div[@class='Time']").text.strip()
+
+        teams = event.find_element(By.XPATH, ".//div[@class='Event ng-binding']").text.strip()
+
+        tab_1 = [time, teams]
+        odds_elements = event.find_elements(By.XPATH, ".//div[@class='odds']//div[contains(@class, 'odd')]")
+        odds_list = []
+        for odd in odds_elements:
+            try:
+                bet_type = odd.find_element(By.XPATH, ".//div[@class='oddsType']").get_attribute("title")
+                bet_value = odd.find_elements(By.XPATH, ".//div")[1].text.strip()  # The second div contains the odd value
+                # odds_list.append(f"{bet_type}: {bet_value}")
+                odds_list.append(bet_value)
+            except:
+                # odds_list.append(f"{bet_type}: {bet_value}")
+                # odds_list.append('N/A')
+                continue  # Skip any missing elements
+    # except:
+        # odds_list = ["N/A"]
+           
+        tab_1.extend(odds_list)
+        bet_table.append(tab_1)
     
     except Exception as e:
         print(f"Error extracting match data: {e}")
@@ -70,11 +87,21 @@ for match in table_f_rows:
 driver.quit()
 
 # Convert to DataFrame
-columns = ["Time", "Home Team", "Away Team", "Odd 1", "Odd X", "Odd 2"]
-df = pd.DataFrame(match_data) #, columns=columns)
+columns = ["datetime", "teams", "1", "X", "2", "1X", "12", "2X", "O", "U"]
+bet_table = pd.DataFrame(bet_table, columns=columns)
+
+# Splitting the column into two based on '-'
+bet_table[['home', 'away']] = bet_table['teams'].str.split('-', expand=True)
+bet_table[['date', 'time']] = bet_table['datetime'].str.split(' ', expand=True)
+
+# Dropping the original column (optional)
+bet_table.drop(columns=['teams'], inplace=True)
+bet_table.drop(columns=['datetime'], inplace=True)
+
+bet_table = pd.DataFrame(bet_table) #, columns=columns)
 
 # Save to CSV
 csv_filename = "bet9ja_odds.csv"
-df.to_csv(csv_filename, index=False)
+bet_table.to_csv(csv_filename, index=False)
 
 print(f"Data saved to {csv_filename}")
