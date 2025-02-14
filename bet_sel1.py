@@ -65,8 +65,8 @@ for match in match_elements: # m-table-cell left-team-cell
     except Exception as e:
         print(f"Skipping a row due to error: {e}")
 
-# Close browser
-driver.quit()
+# # Close browser
+# driver.quit()
 
 # Convert Data to DataFrame
 df = pd.DataFrame(data)
