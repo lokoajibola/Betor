@@ -55,29 +55,37 @@ time.sleep(5)  # Adjust if necessary
 events = driver.find_elements(By.CSS_SELECTOR, "li[class*='dashboard__champ']")
 # List to store scraped data
 bet_table = []
-
-
+timess = driver.find_elements(By.XPATH, './/span[contains(@class, "dashboard-game-block__info")]')
+teamss = driver.find_elements(By.XPATH, './/span[contains(@class, "dashboard-game-block__teams")]')
+oddss = driver.find_elements(By.XPATH, './/span[contains(@class, "dashboard-markets__group")]')
 # Loop through each events
-for event in events:
+
+for i in range(len(timess)):
+# for event in events:
     event_row = []
     
 # match = table_f_rows[-1]
     try:
         # Extract time
-        time = event.find_element(By.XPATH, './/span[contains(@class, "dashboard-game-info__time")]').text
-        (By.CSS_SELECTOR, ".span[class*='ui-team-scores-teams']")
+        e_time = timess[i]
+        time = e_time.find_element(By.XPATH, './/span[contains(@class, "dashboard-game-info__time")]').text
+        # (By.CSS_SELECTOR, ".span[class*='ui-team-scores-teams']")
         # teams = event.find_elements(By.CSS_SELECTOR, ".span[class*='ui-team-scores-teams']")
-        teams = event.find_elements(By.XPATH, ".//span[contains(@class, 'ui-team-scores-teams')]")
         
+        e_team = teamss[i]
+        teams = e_team.find_elements(By.XPATH, ".//div[contains(@class, 'dashboard-game-block__team')]")
+        # dashboard-game-block__teams  dashboard-game-block__team
         teams_list = []
         for team in teams:
-            team = team.find_element(By.XPATH, ".//span[@class='dashboard-game-team-info__name']").text
+            team = team.find_element(By.XPATH, ".//span[contains(@class,'dashboard-game-team-info__name')]").text.strip()
             teams_list.append(team)
-        odds_elements = event.find_elements(By.XPATH, ".//span[@class='dashboard-markets__group']")
+        
+        e_odd = oddss[i]
+        odds_elements = e_odd.find_elements(By.XPATH, ".//button[contains(@class,'dashboard-markets__item')]")
         odds_list = []
         for odd in odds_elements:
             try:
-                bet_value = odd.find_element(By.XPATH, ".//span[@class='ui-market__value']").text
+                bet_value = odd.find_element(By.XPATH, ".//span[contains(@class,'ui-market__value')]").text
                 # bet_value = odd.find_elements(By.XPATH, ".//div")[1].text.strip()  # The second div contains the odd value
                 odds_list.append(bet_value)
             except:
@@ -86,34 +94,28 @@ for event in events:
                 continue  # Skip any missing elements
     # except:
         # odds_list = ["N/A"]
-        event_row.extend(time)
+        event_row.extend([time])
         event_row.extend(teams_list)
         event_row.extend(odds_list)
         bet_table.append(event_row)
     
     except Exception as e:
-        print(f"Error extracting match data: {e}")
+        print('next')
+        # print(f"Error extracting match data: {e}")
 
 
 # time.sleep(30)
 # time.sleep(30)  # Adjust if necessary
 
 # Convert to DataFrame
-columns = ["datetime", "teams", "1", "X", "2", "1X", "12", "2X", "O", "U"]
+columns = ["time", "home","away", "1", "X", "2"]
 bet_table = pd.DataFrame(bet_table, columns=columns)
 
-# Splitting the column into two based on '-'
-bet_table[['home', 'away']] = bet_table['teams'].str.split('-', expand=True)
-bet_table[['time', 'day', 'month']] = bet_table['datetime'].str.split(' ', expand=True)
-
-# Dropping the original column (optional)
-bet_table.drop(columns=['teams'], inplace=True)
-bet_table.drop(columns=['datetime', 'day', 'month'], inplace=True)
 
 bet_table = pd.DataFrame(bet_table) #, columns=columns)
 
 # Save to CSV
-csv_filename = "bet9ja_odds.csv"
+csv_filename = "1xbet_odds.csv"
 bet_table.to_csv(csv_filename, index=False)
 
 print(f"Data saved to {csv_filename}")
