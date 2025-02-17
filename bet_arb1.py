@@ -88,6 +88,8 @@ df4['bet_amt_2'] = df4['inv_H_2'] / df4['sum_inv_H'] * stake
 
 df4['profit'] = ((df4['bet_amt_1'] * df4['H_1']) - stake)
 
+print('Maximum profit: ', df4['profit'].max())
+
 # Save Data to CSV
 csv_filename = 'bet_arb.csv'
 df4.to_csv(csv_filename, index=False)

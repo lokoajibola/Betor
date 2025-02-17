@@ -23,13 +23,14 @@ driver.get("https://www.sportybet.com/ng/sport/football/today")  # SportyBet Nig
 # WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "m-table match-table")))
 time.sleep(3)
 # Extract all match elements
-match_elements = driver.find_elements(By.CLASS_NAME, "m-table-row")
+
 
 # if match_elements:
 #     match = match_elements[0]  # Pick the first element
 # List to store scraped data
 data = []
 while True:
+    match_elements = driver.find_elements(By.XPATH, '//div[contains(@class, "m-content-row match-row")]')
     for match in match_elements: # m-table-cell left-team-cell
         try:
             # Get match date (if available)
@@ -37,7 +38,7 @@ while True:
     
             # Get match details
             time = match.find_element(By.CLASS_NAME, "clock-time").text.strip()
-            game_id = match.find_element(By.CLASS_NAME, "game-id").text.replace("ID: ", "").strip()
+            # game_id = match.find_element(By.CLASS_NAME, "game-id").text.replace("ID: ", "").strip()
             home_team = match.find_element(By.CLASS_NAME, "home-team").text.strip()
             away_team = match.find_element(By.CLASS_NAME, "away-team").text.strip()
     
@@ -53,7 +54,7 @@ while True:
             data.append({
                 # "Date": date_element,
                 "Time": time,
-                "Game ID": game_id,
+                # "Game ID": game_id,
                 "Home Team": home_team,
                 "Away Team": away_team,
                 "1": odds_1,
@@ -77,7 +78,7 @@ while True:
         print('NEW PAGE!!!!!!')
         next_page.click()
         import time
-        time.sleep(3)
+        time.sleep(5)
 # Close browser
 # driver.quit()
 

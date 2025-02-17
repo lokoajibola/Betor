@@ -98,6 +98,7 @@ columns = ["datetime", "teams", "1", "X", "2", "1X", "12", "2X", "O", "U"]
 bet_table = pd.DataFrame(bet_table, columns=columns)
 
 # Splitting the column into two based on '-'
+bet_table.drop(bet_table[bet_table['teams'].str.count(' - ') > 1].index, inplace=True)
 bet_table[['home', 'away']] = bet_table['teams'].str.split(' - ', expand=True)
 bet_table[['time', 'day', 'month']] = bet_table['datetime'].str.split(' ', expand=True)
 
