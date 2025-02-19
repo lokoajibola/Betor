@@ -14,7 +14,7 @@ import pandas as pd
 stake = 100
 
 
-csv_files = ['sportybet_odds.csv', 'bet9ja_odds.csv', '1xbet_odds.csv', 'msports_odds.csv']
+csv_files = ['bet9ja_odds.csv', 'sportybet_odds.csv', '1xbet_odds.csv', 'msports_odds.csv']
 
 dfs = [pd.read_csv(file) for file in csv_files]
 prefixes = [file.replace('_odds.csv', '') for file in csv_files]
